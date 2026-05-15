@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GhostPass</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Mono&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -23,17 +22,24 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'Syne', sans-serif;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HOME SCREEN ── */
+    #home {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 2rem;
-      overflow-x: hidden;
+      position: relative;
     }
 
-    /* Background grid */
-    body::before {
+    #home::before {
       content: '';
       position: fixed;
       inset: 0;
@@ -41,29 +47,26 @@
         linear-gradient(var(--border) 1px, transparent 1px),
         linear-gradient(90deg, var(--border) 1px, transparent 1px);
       background-size: 40px 40px;
-      opacity: 0.4;
+      opacity: 0.3;
       z-index: 0;
     }
 
-    /* Glow blob */
-    body::after {
+    #home::after {
       content: '';
       position: fixed;
-      top: 30%;
-      left: 50%;
+      top: 30%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 600px;
-      height: 400px;
+      width: 600px; height: 400px;
       background: radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, transparent 70%);
       z-index: 0;
       pointer-events: none;
     }
 
-    .container {
+    .home-inner {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 640px;
+      max-width: 600px;
       text-align: center;
     }
 
@@ -77,8 +80,7 @@
       border-radius: 100px;
       margin-bottom: 1.5rem;
       letter-spacing: 0.1em;
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.1s forwards;
+      animation: fadeUp 0.5s ease 0.1s both;
     }
 
     h1 {
@@ -86,9 +88,8 @@
       font-weight: 800;
       line-height: 1;
       letter-spacing: -0.03em;
-      margin-bottom: 0.75rem;
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.2s forwards;
+      margin-bottom: 0.5rem;
+      animation: fadeUp 0.5s ease 0.2s both;
     }
 
     h1 span {
@@ -103,20 +104,17 @@
       color: var(--muted);
       margin-bottom: 2.5rem;
       font-weight: 400;
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.3s forwards;
+      animation: fadeUp 0.5s ease 0.3s both;
     }
 
     .search-box {
       display: flex;
-      gap: 0;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
       transition: border-color 0.2s, box-shadow 0.2s;
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.4s forwards;
+      animation: fadeUp 0.5s ease 0.4s both;
     }
 
     .search-box:focus-within {
@@ -124,7 +122,7 @@
       box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
     }
 
-    input {
+    #urlInput {
       flex: 1;
       background: transparent;
       border: none;
@@ -136,9 +134,9 @@
       min-width: 0;
     }
 
-    input::placeholder { color: var(--muted); }
+    #urlInput::placeholder { color: var(--muted); }
 
-    button {
+    .go-btn {
       background: linear-gradient(135deg, var(--accent), #5b21b6);
       border: none;
       padding: 1rem 1.5rem;
@@ -149,75 +147,18 @@
       cursor: pointer;
       transition: opacity 0.2s, transform 0.1s;
       white-space: nowrap;
-      letter-spacing: 0.02em;
     }
 
-    button:hover { opacity: 0.9; }
-    button:active { transform: scale(0.97); }
-
-    .status {
-      margin-top: 1.25rem;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.8rem;
-      color: var(--muted);
-      min-height: 1.2em;
-      transition: color 0.2s;
-    }
-
-    .status.error { color: #f87171; }
-    .status.loading { color: var(--accent2); }
-    .status.success { color: #4ade80; }
-
-    .frame-wrap {
-      margin-top: 2rem;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      display: none;
-      opacity: 0;
-      animation: fadeUp 0.4s ease forwards;
-    }
-
-    .frame-bar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .dot { width: 10px; height: 10px; border-radius: 50%; }
-    .dot.r { background: #f87171; }
-    .dot.y { background: #fbbf24; }
-    .dot.g { background: #4ade80; }
-
-    .frame-url {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-left: 0.5rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    iframe {
-      width: 100%;
-      height: 520px;
-      border: none;
-      background: white;
-      display: block;
-    }
+    .go-btn:hover { opacity: 0.9; }
+    .go-btn:active { transform: scale(0.97); }
 
     .tips {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       justify-content: center;
       flex-wrap: wrap;
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.5s forwards;
+      animation: fadeUp 0.5s ease 0.5s both;
     }
 
     .tip {
@@ -234,6 +175,83 @@
 
     .tip:hover { border-color: var(--accent); color: var(--text); }
 
+    /* ── BROWSER SCREEN ── */
+    #browser {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: #000;
+    }
+
+    #browser.active { display: flex; }
+
+    #siteFrame {
+      flex: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+      allow: fullscreen;
+    }
+
+    /* ── FLOATING URL BAR ── */
+    #floatBar {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      background: rgba(18, 18, 26, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem 0.5rem 1.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      min-width: 280px;
+      max-width: 500px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #floatBar.visible { opacity: 1; }
+
+    #floatUrl {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bar-btn {
+      background: rgba(255,255,255,0.07);
+      border: none;
+      color: var(--text);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+      font-size: 0.8rem;
+    }
+
+    .bar-btn:hover { background: rgba(255,255,255,0.15); }
+
+    .bar-btn.home-icon { font-size: 0.9rem; }
+
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -241,79 +259,91 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="badge">FREE · PRIVATE · OPEN</div>
-    <h1>Ghost<span>Pass</span></h1>
-    <p class="subtitle">Slip through the web, unseen.</p>
 
-    <div class="search-box">
-      <input type="text" id="urlInput" placeholder="Enter a URL... e.g. example.com" autocomplete="off" spellcheck="false"/>
-      <button onclick="go()">GO →</button>
-    </div>
+  <!-- HOME -->
+  <div id="home">
+    <div class="home-inner">
+      <div class="badge">FREE · PRIVATE · UNBLOCKED</div>
+      <h1>Ghost<span>Pass</span></h1>
+      <p class="subtitle">Slip through the web, unseen.</p>
 
-    <div class="status" id="status"></div>
-
-    <div class="frame-wrap" id="frameWrap">
-      <div class="frame-bar">
-        <div class="dot r"></div>
-        <div class="dot y"></div>
-        <div class="dot g"></div>
-        <div class="frame-url" id="frameUrl"></div>
+      <div class="search-box">
+        <input type="text" id="urlInput" placeholder="Enter a URL..." autocomplete="off" spellcheck="false"/>
+        <button class="go-btn" onclick="go()">GO →</button>
       </div>
-      <iframe id="frame" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-    </div>
 
-    <div class="tips">
-      <div class="tip" onclick="setUrl('wikipedia.org')">wikipedia.org</div>
-      <div class="tip" onclick="setUrl('example.com')">example.com</div>
-      <div class="tip" onclick="setUrl('news.ycombinator.com')">hackernews</div>
+      <div class="tips">
+        <div class="tip" onclick="loadSite('https://dashmetry.com')">👾 Dashmetry</div>
+        <div class="tip" onclick="loadSite('https://youtube.com')">▶ YouTube</div>
+        <div class="tip" onclick="loadSite('https://wikipedia.org')">📖 Wikipedia</div>
+        <div class="tip" onclick="loadSite('https://news.ycombinator.com')">💻 HackerNews</div>
+      </div>
     </div>
   </div>
 
+  <!-- BROWSER -->
+  <div id="browser">
+    <iframe
+      id="siteFrame"
+      allowfullscreen
+      allow="fullscreen; autoplay; encrypted-media; picture-in-picture"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation allow-modals"
+    ></iframe>
+  </div>
+
+  <!-- FLOATING BAR -->
+  <div id="floatBar">
+    <span id="floatUrl">loading...</span>
+    <button class="bar-btn" title="Fullscreen" onclick="goFullscreen()">⛶</button>
+    <button class="bar-btn home-icon" title="Home" onclick="goHome()">⌂</button>
+  </div>
+
   <script>
-    const input = document.getElementById('urlInput');
-    const status = document.getElementById('status');
-    const frameWrap = document.getElementById('frameWrap');
-    const frame = document.getElementById('frame');
-    const frameUrl = document.getElementById('frameUrl');
+    const homeEl    = document.getElementById('home');
+    const browserEl = document.getElementById('browser');
+    const frame     = document.getElementById('siteFrame');
+    const floatBar  = document.getElementById('floatBar');
+    const floatUrl  = document.getElementById('floatUrl');
+    const input     = document.getElementById('urlInput');
 
     input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-
-    function setUrl(url) {
-      input.value = url;
-      go();
-    }
 
     function go() {
       let url = input.value.trim();
       if (!url) return;
+      loadSite(url);
+    }
 
+    function loadSite(url) {
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
       }
 
-      setStatus('loading', 'Fetching ' + url + '...');
-      frameWrap.style.display = 'none';
-
       const proxyUrl = '/api/proxy?url=' + encodeURIComponent(url);
-      frameUrl.textContent = url;
 
       frame.src = proxyUrl;
-      frame.onload = () => {
-        frameWrap.style.display = 'block';
-        frameWrap.style.animation = 'none';
-        frameWrap.offsetHeight; // reflow
-        frameWrap.style.animation = '';
-        setStatus('success', '✓ Loaded successfully');
-      };
-      frame.onerror = () => {
-        setStatus('error', '✗ Failed to load page');
-      };
+      floatUrl.textContent = url;
+
+      homeEl.style.display = 'none';
+      browserEl.classList.add('active');
+
+      setTimeout(() => {
+        floatBar.classList.add('visible');
+      }, 600);
     }
 
-    function setStatus(type, msg) {
-      status.className = 'status ' + type;
-      status.textContent = msg;
+    function goHome() {
+      browserEl.classList.remove('active');
+      floatBar.classList.remove('visible');
+      frame.src = '';
+      homeEl.style.display = 'flex';
+      input.value = '';
+    }
+
+    function goFullscreen() {
+      const el = document.getElementById('browser');
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     }
   </script>
 </body>
