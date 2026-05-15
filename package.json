@@ -4,6 +4,6 @@
   "description": "My personal web proxy",
   "main": "api/proxy.js",
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   }
 }
