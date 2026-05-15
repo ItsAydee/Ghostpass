@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GhostPass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #222235;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.4;
+      z-index: 0;
+    }
+
+    /* Glow blob */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent2);
+      border: 1px solid var(--accent2);
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.1em;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.1s forwards;
+    }
+
+    h1 {
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.2s forwards;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      font-weight: 400;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.3s forwards;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.4s forwards;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 1rem 1.25rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+      min-width: 0;
+    }
+
+    input::placeholder { color: var(--muted); }
+
+    button {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      border: none;
+      padding: 1rem 1.5rem;
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    button:hover { opacity: 0.9; }
+    button:active { transform: scale(0.97); }
+
+    .status {
+      margin-top: 1.25rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-height: 1.2em;
+      transition: color 0.2s;
+    }
+
+    .status.error { color: #f87171; }
+    .status.loading { color: var(--accent2); }
+    .status.success { color: #4ade80; }
+
+    .frame-wrap {
+      margin-top: 2rem;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      display: none;
+      opacity: 0;
+      animation: fadeUp 0.4s ease forwards;
+    }
+
+    .frame-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r { background: #f87171; }
+    .dot.y { background: #fbbf24; }
+    .dot.g { background: #4ade80; }
+
+    .frame-url {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: 0.5rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    iframe {
+      width: 100%;
+      height: 520px;
+      border: none;
+      background: white;
+      display: block;
+    }
+
+    .tips {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.5s forwards;
+    }
+
+    .tip {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .tip:hover { border-color: var(--accent); color: var(--text); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">FREE · PRIVATE · OPEN</div>
+    <h1>Ghost<span>Pass</span></h1>
+    <p class="subtitle">Slip through the web, unseen.</p>
+
+    <div class="search-box">
+      <input type="text" id="urlInput" placeholder="Enter a URL... e.g. example.com" autocomplete="off" spellcheck="false"/>
+      <button onclick="go()">GO →</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="frame-wrap" id="frameWrap">
+      <div class="frame-bar">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+        <div class="frame-url" id="frameUrl"></div>
+      </div>
+      <iframe id="frame" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    </div>
+
+    <div class="tips">
+      <div class="tip" onclick="setUrl('wikipedia.org')">wikipedia.org</div>
+      <div class="tip" onclick="setUrl('example.com')">example.com</div>
+      <div class="tip" onclick="setUrl('news.ycombinator.com')">hackernews</div>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('urlInput');
+    const status = document.getElementById('status');
+    const frameWrap = document.getElementById('frameWrap');
+    const frame = document.getElementById('frame');
+    const frameUrl = document.getElementById('frameUrl');
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+
+    function setUrl(url) {
+      input.value = url;
+      go();
+    }
+
+    function go() {
+      let url = input.value.trim();
+      if (!url) return;
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+
+      setStatus('loading', 'Fetching ' + url + '...');
+      frameWrap.style.display = 'none';
+
+      const proxyUrl = '/api/proxy?url=' + encodeURIComponent(url);
+      frameUrl.textContent = url;
+
+      frame.src = proxyUrl;
+      frame.onload = () => {
+        frameWrap.style.display = 'block';
+        frameWrap.style.animation = 'none';
+        frameWrap.offsetHeight; // reflow
+        frameWrap.style.animation = '';
+        setStatus('success', '✓ Loaded successfully');
+      };
+      frame.onerror = () => {
+        setStatus('error', '✗ Failed to load page');
+      };
+    }
+
+    function setStatus(type, msg) {
+      status.className = 'status ' + type;
+      status.textContent = msg;
+    }
+  </script>
+</body>
+</html>

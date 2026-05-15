@@ -1,0 +1,9 @@
+{
+  "name": "ghostpass",
+  "version": "1.0.0",
+  "description": "My personal web proxy",
+  "main": "api/proxy.js",
+  "engines": {
+    "node": "18.x"
+  }
+}
